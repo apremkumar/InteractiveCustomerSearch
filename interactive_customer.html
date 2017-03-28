@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Interactive Customer Search</title>
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<script src="https://code.highcharts.com/highcharts.js"></script>
+	<script src="https://code.highcharts.com/modules/exporting.js"></script>
+	<script>
+		function getCustomers() {
+			return [{gender:'M', income: 'high', location: 'texas'},
+			{gender:'M', income: 'low', location: 'texas'},
+			{gender:'F', income: 'low', location: 'texas'},
+			{gender:'M', income: 'medium', location: 'florida'},
+			{gender:'F', income: 'high', location: 'florida'},
+			{gender:'F', income: 'medium', location: 'virginia'},
+			{gender:'', income: 'low', location: 'virginia'},
+			{gender:'M', income: 'high', location: 'virginia'},
+			{gender:'M', income: 'low', location: 'kansas'},
+			{gender:'F', income: 'low', location: 'ohio'},
+			{gender:'M', income: 'medium', location: 'chicago'},
+			{gender:'F', income: 'high', location: 'kansas'},
+			{gender:'F', income: 'medium', location: 'ohio'},
+			{gender:'', income: 'low', location: 'ohio'},
+			{gender:'M', income: 'high', location: 'london'},
+			{gender:'M', income: 'low', location: 'london'},
+			{gender:'F', income: 'low', location: 'ohio'},
+			{gender:'M', income: 'medium', location: 'ohio'},
+			{gender:'F', income: 'high', location: 'london'},
+			{gender:'F', income: 'medium', location: 'chicago'},
+			{gender:'', income: 'low', location: 'chicago'}];
+		}
+		function applyFilters(filters) {
+			var customers = getCustomers(),
+				obj = [],
+				counter = {high: 0, medium: 0, low: 0};
+
+			console.log(filters);
+			for(var i in customers){
+				var itrFlag = true;
+				for(var key in filters) {
+					if((key != 'income' && filters[key] != customers[i][key]) || (key == 'income' && filters[key].indexOf(customers[i][key]) == -1)) {
+						itrFlag = false;
+					}
+				}
+				if(itrFlag) {
+					counter[customers[i].income] += 1;
+					obj.push(customers[i]);
+				}
+			}
+			console.log(counter);
+			return counter;
+		}
+		function submitSearch() {
+			var searchStr = document.getElementsByName('search')[0].value,
+				filterObj = {},
+				searchStr = searchStr.replace(/,/g , " ");
+				console.log(searchStr);
+				searchArray = searchStr.split(" ");
+
+			if(searchArray.indexOf('female') > -1) {
+				filterObj['gender'] = 'F';
+			} else if(searchStr.indexOf('male') > -1) {
+				filterObj['gender'] = 'M';
+			}
+
+			if(searchStr.indexOf('income level') > -1 && searchArray.length > searchArray.indexOf('level')) {
+				filterObj['income'] = [];
+				if(searchArray.indexOf('high') > -1) {
+					filterObj['income'].push('high');
+				}
+				if(searchArray.indexOf('medium') > -1) {
+					filterObj['income'].push('medium');
+				}
+				if(searchArray.indexOf('low') > -1) {
+					filterObj['income'].push('low');
+				}
+				console.log(searchArray);
+			}
+
+			if(searchStr.indexOf('from') > -1 && searchArray.length > searchArray.indexOf('from')) {
+				filterObj['location'] = searchArray[searchArray.indexOf('from') + 1];
+			}
+			var result = applyFilters(filterObj);
+			renderChart(prepareChartData(result));
+		}
+		function prepareChartData(result) {
+			var series = [];
+			if(result) {
+				for(var key in result) {
+					series.push({name: key, y: result[key]});
+				}
+			}
+			return series;
+		}
+		function renderChart(sData) {
+			Highcharts.chart('container', {
+				chart: {
+					plotBackgroundColor: null,
+					plotBorderWidth: null,
+					plotShadow: false,
+					type: 'pie'
+				},
+				title: {
+					text: 'Interactive Customer Data'
+				},
+				tooltip: {
+					pointFormat: '{series.name}: <b>{point.y}</b>'
+				},
+				plotOptions: {
+					pie: {
+						allowPointSelect: true,
+						cursor: 'pointer',
+						dataLabels: {
+							enabled: false
+						},
+						showInLegend: true
+					}
+				},
+				series: [{
+					name: 'Customers',
+					colorByPoint: true,
+					data: sData
+				}]
+			});
+		}
+	</script>
+</head>
+<body>
+	<div style="height:30px;width:100%;text-align:center;">
+		<label>Customer Search</label>
+		<input type="text" name="search" size="75" style="height:inherit;"/>
+		<button name="doSearch" style="height:inherit;margin-left:5px;" onclick="submitSearch();">Search</button></br>
+		<!-- <canvas id="piechart" width="200" height="200"></canvas> -->
+		<div id="container" style="min-width: 310px; height: 400px; max-width: 600px; margin: 10px auto"></div>
+	</div>
+</body>
+</html>
